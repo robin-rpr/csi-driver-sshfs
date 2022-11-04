@@ -1,4 +1,4 @@
-module github.com/kubernetes-csi/csi-driver-nfs
+module github.com/robinr-rpr/csi-driver-sshfs
 
 go 1.18
 

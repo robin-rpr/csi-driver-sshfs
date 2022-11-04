@@ -15,9 +15,9 @@
 FROM registry.k8s.io/build-image/debian-base:bullseye-v1.4.2
 
 ARG ARCH
-ARG binary=./bin/${ARCH}/nfsplugin
-COPY ${binary} /nfsplugin
+ARG binary=./bin/${ARCH}/sshfsplugin
+COPY ${binary} /sshfsplugin
 
-RUN apt update && apt upgrade -y && apt-mark unhold libcap2 && clean-install ca-certificates mount nfs-common netbase
+RUN apt update && apt upgrade -y && apt-mark unhold libcap2 && clean-install ca-certificates mount fuse3 sshfs netbase
 
-ENTRYPOINT ["/nfsplugin"]
+ENTRYPOINT ["/sshfsplugin"]

@@ -2,6 +2,6 @@
 
 approvers:
 - kubernetes-csi-approvers
-- andyzhangx
+- robin-rpr
 reviewers:
 - kubernetes-csi-reviewers

@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-CMDS=nfsplugin
+CMDS=sshfsplugin
 DEPLOY_FOLDER = ./deploy
-CMDS=nfsplugin
-PKG = github.com/kubernetes-csi/csi-driver-nfs
+CMDS=sshfsplugin
+PKG = github.com/robin-rpr/csi-driver-sshfs
 GINKGO_FLAGS = -ginkgo.v
 GO111MODULE = on
 GOPATH ?= $(shell go env GOPATH)
@@ -28,7 +28,7 @@ include release-tools/build.make
 GIT_COMMIT = $(shell git rev-parse HEAD)
 BUILD_DATE = $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 IMAGE_VERSION ?= v4.2.0
-LDFLAGS = -X ${PKG}/pkg/nfs.driverVersion=${IMAGE_VERSION} -X ${PKG}/pkg/nfs.gitCommit=${GIT_COMMIT} -X ${PKG}/pkg/nfs.buildDate=${BUILD_DATE}
+LDFLAGS = -X ${PKG}/pkg/sshfs.driverVersion=${IMAGE_VERSION} -X ${PKG}/pkg/sshfs.gitCommit=${GIT_COMMIT} -X ${PKG}/pkg/sshfs.buildDate=${BUILD_DATE}
 EXT_LDFLAGS = -s -w -extldflags "-static"
 # Use a custom version for E2E tests if we are testing in CI
 ifdef CI
@@ -36,13 +36,13 @@ ifndef PUBLISH
 override IMAGE_VERSION := e2e-$(GIT_COMMIT)
 endif
 endif
-IMAGENAME ?= nfsplugin
-REGISTRY ?= andyzhangx
-REGISTRY_NAME ?= $(shell echo $(REGISTRY) | sed "s/.azurecr.io//g")
+IMAGENAME ?= sshfsplugin
+REGISTRY ?= robin-rpr
+REGISTRY_NAME ?= $(shell echo $(REGISTRY) | sed "s/.ghcr.io//g")
 IMAGE_TAG = $(REGISTRY)/$(IMAGENAME):$(IMAGE_VERSION)
 IMAGE_TAG_LATEST = $(REGISTRY)/$(IMAGENAME):latest
 
-E2E_HELM_OPTIONS ?= --set image.nfs.repository=$(REGISTRY)/$(IMAGENAME) --set image.nfs.tag=$(IMAGE_VERSION) --set image.nfs.pullPolicy=Always --set feature.enableInlineVolume=true
+E2E_HELM_OPTIONS ?= --set image.sshfs.repository=$(REGISTRY)/$(IMAGENAME) --set image.sshfs.tag=$(IMAGE_VERSION) --set image.sshfs.pullPolicy=Always --set feature.enableInlineVolume=true
 E2E_HELM_OPTIONS += ${EXTRA_HELM_OPTIONS}
 
 # Output type of docker buildx build
@@ -53,7 +53,7 @@ ALL_OS_ARCH = linux-arm64 linux-arm-v7 linux-amd64 linux-ppc64le
 
 .EXPORT_ALL_VARIABLES:
 
-all: nfs
+all: sshfs
 
 .PHONY: verify
 verify: unit-test
@@ -64,25 +64,25 @@ unit-test:
 	go test -covermode=count -coverprofile=profile.cov ./pkg/... -v
 
 .PHONY: sanity-test
-sanity-test: nfs
+sanity-test: sshfs
 	./test/sanity/run-test.sh
 
 .PHONY: integration-test
-integration-test: nfs
+integration-test: sshfs
 	./test/integration/run-test.sh
 
 .PHONY: local-build-push
-local-build-push: nfs
-	docker build -t $(LOCAL_USER)/nfsplugin:latest .
-	docker push $(LOCAL_USER)/nfsplugin
+local-build-push: sshfs
+	docker build -t $(LOCAL_USER)/sshfsplugin:latest .
+	docker push $(LOCAL_USER)/sshfsplugin
 
-.PHONY: nfs
-nfs:
-	CGO_ENABLED=0 GOOS=linux GOARCH=$(ARCH) go build -a -ldflags "${LDFLAGS} ${EXT_LDFLAGS}" -mod vendor -o bin/${ARCH}/nfsplugin ./cmd/nfsplugin
+.PHONY: sshfs
+sshfs:
+	CGO_ENABLED=0 GOOS=linux GOARCH=$(ARCH) go build -a -ldflags "${LDFLAGS} ${EXT_LDFLAGS}" -mod vendor -o bin/${ARCH}/sshfsplugin ./cmd/sshfsplugin
 
-.PHONY: nfs-armv7
-nfs-armv7:
-	CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 go build -a -ldflags "${LDFLAGS} ${EXT_LDFLAGS}" -mod vendor -o bin/arm/v7/nfsplugin ./cmd/nfsplugin
+.PHONY: sshfs-armv7
+sshfs-armv7:
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 go build -a -ldflags "${LDFLAGS} ${EXT_LDFLAGS}" -mod vendor -o bin/arm/v7/sshfsplugin ./cmd/sshfsplugin
 
 .PHONY: container-build
 container-build:
@@ -103,10 +103,10 @@ container:
 	docker run --privileged --rm tonistiigi/binfmt --uninstall qemu-aarch64
 	docker run --rm --privileged tonistiigi/binfmt --install all
 	for arch in $(ALL_ARCH.linux); do \
-		ARCH=$${arch} $(MAKE) nfs; \
+		ARCH=$${arch} $(MAKE) sshfs; \
 		ARCH=$${arch} $(MAKE) container-build; \
 	done
-	$(MAKE) nfs-armv7
+	$(MAKE) sshfs-armv7
 	$(MAKE) container-linux-armv7
 
 .PHONY: push
@@ -130,11 +130,11 @@ else
 	docker push $(IMAGE_TAG_LATEST)
 endif
 
-.PHONY: install-nfs-server
-install-nfs-server:
-	kubectl apply -f ./deploy/example/nfs-provisioner/nfs-server.yaml
+.PHONY: install-sshfs-server
+install-sshfs-server:
+	kubectl apply -f ./deploy/example/sshfs-provisioner/sshfs-server.yaml
 	kubectl delete secret mount-options --ignore-not-found
-	kubectl create secret generic mount-options --from-literal mountOptions="nfsvers=4.1"
+	kubectl create secret generic mount-options --from-literal mountOptions="sshfsvers=4.1"
 
 .PHONY: install-helm
 install-helm:
@@ -143,7 +143,7 @@ install-helm:
 .PHONY: e2e-bootstrap
 e2e-bootstrap: install-helm
 	OUTPUT_TYPE=registry $(MAKE) container push
-	helm install csi-driver-nfs ./charts/latest/csi-driver-nfs --namespace kube-system --wait --timeout=15m -v=5 --debug \
+	helm install csi-driver-sshfs ./charts/latest/csi-driver-sshfs --namespace kube-system --wait --timeout=15m -v=5 --debug \
 		${E2E_HELM_OPTIONS} \
 		--set controller.dnsPolicy=ClusterFirstWithHostNet \
 		--set controller.logLevel=8 \
@@ -151,7 +151,7 @@ e2e-bootstrap: install-helm
 
 .PHONY: e2e-teardown
 e2e-teardown:
-	helm delete csi-driver-nfs --namespace kube-system
+	helm delete csi-driver-sshfs --namespace kube-system
 
 .PHONY: e2e-test
 e2e-test:
