@@ -1,5 +1,5 @@
 **Status:** Experimental (only for development, expect crashes)
-<img height="151px" align="right" alt="csi-driver-sshfs" src="https://raw.githubusercontent.com/robin-rpr/csi-driver-sshfs/master/csi-driver-sshfs.svg" title="csi-driver-sshfs"/>
+<img height="141px" align="right" alt="csi-driver-sshfs" src="https://raw.githubusercontent.com/robin-rpr/csi-driver-sshfs/master/csi-driver-sshfs.svg" title="csi-driver-sshfs"/>
 
 # SSHFS CSI driver for Kubernetes
 ![build status](https://github.com/robin-rpr/csi-driver-sshfs/actions/workflows/linux.yaml/badge.svg)
