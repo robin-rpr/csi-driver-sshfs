@@ -2,21 +2,21 @@
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: csi-nfs-controller
+  name: csi-sshfs-controller
   namespace: kube-system
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: csi-nfs-controller
+      app: csi-sshfs-controller
   template:
     metadata:
       labels:
-        app: csi-nfs-controller
+        app: csi-sshfs-controller
     spec:
-      hostNetwork: true  # controller also needs to mount nfs to create dir
+      hostNetwork: true  # controller also needs to mount sshfs to create dir
       dnsPolicy: Default  # available values: Default, ClusterFirstWithHostNet, ClusterFirst
-      serviceAccountName: csi-nfs-controller-sa
+      serviceAccountName: csi-sshfs-controller-sa
       nodeSelector:
         kubernetes.io/os: linux  # add "kubernetes.io/role: master" to run controller on master node
       priorityClassName: system-cluster-critical
@@ -67,8 +67,8 @@ spec:
             requests:
               cpu: 10m
               memory: 20Mi
-        - name: nfs
-          image: gcr.io/k8s-staging-sig-storage/nfsplugin:canary
+        - name: sshfs
+          image: gcr.io/k8s-staging-sig-storage/sshfsplugin:canary
           securityContext:
             privileged: true
             capabilities:
