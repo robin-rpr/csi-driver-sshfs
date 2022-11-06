@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package nfs
+package sshfs
 
 import (
 	"fmt"
@@ -127,7 +127,7 @@ func (ns *NodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublis
 	}
 
 	klog.V(2).Infof("NodePublishVolume: volumeID(%v) source(%s) targetPath(%s) mountflags(%v)", volumeID, source, targetPath, mountOptions)
-	err = ns.mounter.Mount(source, targetPath, "nfs", mountOptions)
+	err = ns.mounter.Mount(source, targetPath, "sshfs", mountOptions)
 	if err != nil {
 		if os.IsPermission(err) {
 			return nil, status.Error(codes.PermissionDenied, err.Error())

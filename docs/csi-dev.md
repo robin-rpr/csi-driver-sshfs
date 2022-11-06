@@ -4,12 +4,12 @@
  - Clone repo
 ```console
 $ mkdir -p $GOPATH/src/sigs.k8s.io/
-$ git clone https://github.com/kubernetes-csi/csi-driver-sshfs $GOPATH/src/github.com/kubernetes-csi/csi-driver-sshfs
+$ git clone https://github.com/robin-rpr/csi-driver-sshfs $GOPATH/src/github.com/robin-rpr/csi-driver-sshfs
 ```
 
  - Build CSI driver
 ```console
-$ cd $GOPATH/src/github.com/kubernetes-csi/csi-driver-sshfs
+$ cd $GOPATH/src/github.com/robin-rpr/csi-driver-sshfs
 $ make
 ```
 
@@ -36,7 +36,7 @@ $ make build
 
 #### Start CSI driver locally
 ```console
-$ cd $GOPATH/src/github.com/kubernetes-csi/csi-driver-sshfs
+$ cd $GOPATH/src/github.com/robin-rpr/csi-driver-sshfs
 $ ./bin/sshfsplugin --endpoint unix:///tmp/csi.sock --nodeid CSINode -v=5 &
 ```
 

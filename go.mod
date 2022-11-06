@@ -1,4 +1,4 @@
-module github.com/robinr-rpr/csi-driver-sshfs
+module github.com/robin-rpr/csi-driver-sshfs
 
 go 1.18
 

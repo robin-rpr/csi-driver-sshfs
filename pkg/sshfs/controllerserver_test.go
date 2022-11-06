@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package nfs
+package sshfs
 
 import (
 	"os"
@@ -358,7 +358,7 @@ func TestNfsVolFromId(t *testing.T) {
 	cases := []struct {
 		name      string
 		volumeID  string
-		resp      *nfsVolume
+		resp      *sshfsVolume
 		expectErr bool
 	}{
 		{
@@ -376,7 +376,7 @@ func TestNfsVolFromId(t *testing.T) {
 		{
 			name:     "valid request single baseDir",
 			volumeID: testVolumeID,
-			resp: &nfsVolume{
+			resp: &sshfsVolume{
 				id:      testVolumeID,
 				server:  testServer,
 				baseDir: testBaseDir,
@@ -387,7 +387,7 @@ func TestNfsVolFromId(t *testing.T) {
 		{
 			name:     "valid request single baseDir with newTestVolumeID",
 			volumeID: newTestVolumeID,
-			resp: &nfsVolume{
+			resp: &sshfsVolume{
 				id:      newTestVolumeID,
 				server:  testServer,
 				baseDir: testBaseDir,
@@ -398,7 +398,7 @@ func TestNfsVolFromId(t *testing.T) {
 		{
 			name:     "valid request nested baseDir",
 			volumeID: testVolumeIDNested,
-			resp: &nfsVolume{
+			resp: &sshfsVolume{
 				id:      testVolumeIDNested,
 				server:  testServer,
 				baseDir: testBaseDirNested,
@@ -409,7 +409,7 @@ func TestNfsVolFromId(t *testing.T) {
 		{
 			name:     "valid request nested baseDir with newTestVolumeIDNested",
 			volumeID: newTestVolumeIDNested,
-			resp: &nfsVolume{
+			resp: &sshfsVolume{
 				id:      newTestVolumeIDNested,
 				server:  testServer,
 				baseDir: testBaseDirNested,
@@ -420,7 +420,7 @@ func TestNfsVolFromId(t *testing.T) {
 		{
 			name:     "valid request nested baseDir with newTestVolumeIDNested",
 			volumeID: newTestVolumeIDUUID,
-			resp: &nfsVolume{
+			resp: &sshfsVolume{
 				id:      newTestVolumeIDUUID,
 				server:  testServer,
 				baseDir: testBaseDir,
@@ -496,7 +496,7 @@ func TestGetInternalMountPath(t *testing.T) {
 	cases := []struct {
 		desc            string
 		workingMountDir string
-		vol             *nfsVolume
+		vol             *sshfsVolume
 		result          string
 	}{
 		{
@@ -507,7 +507,7 @@ func TestGetInternalMountPath(t *testing.T) {
 		{
 			desc:            "uuid not empty",
 			workingMountDir: "/tmp",
-			vol: &nfsVolume{
+			vol: &sshfsVolume{
 				subDir: "subdir",
 				uuid:   "uuid",
 			},
@@ -516,7 +516,7 @@ func TestGetInternalMountPath(t *testing.T) {
 		{
 			desc:            "uuid empty",
 			workingMountDir: "/tmp",
-			vol: &nfsVolume{
+			vol: &sshfsVolume{
 				subDir: "subdir",
 				uuid:   "",
 			},
@@ -530,13 +530,13 @@ func TestGetInternalMountPath(t *testing.T) {
 	}
 }
 
-func TestNewNFSVolume(t *testing.T) {
+func TestNewSSHFSVolume(t *testing.T) {
 	cases := []struct {
 		desc      string
 		name      string
 		size      int64
 		params    map[string]string
-		expectVol *nfsVolume
+		expectVol *sshfsVolume
 		expectErr error
 	}{
 		{
@@ -544,13 +544,13 @@ func TestNewNFSVolume(t *testing.T) {
 			name: "pv-name",
 			size: 100,
 			params: map[string]string{
-				paramServer: "//nfs-server.default.svc.cluster.local",
+				paramServer: "//sshfs-server.default.svc.cluster.local",
 				paramShare:  "share",
 				paramSubDir: "subdir",
 			},
-			expectVol: &nfsVolume{
-				id:      "nfs-server.default.svc.cluster.local#share#subdir#pv-name",
-				server:  "//nfs-server.default.svc.cluster.local",
+			expectVol: &sshfsVolume{
+				id:      "sshfs-server.default.svc.cluster.local#share#subdir#pv-name",
+				server:  "//sshfs-server.default.svc.cluster.local",
 				baseDir: "share",
 				subDir:  "subdir",
 				size:    100,
@@ -562,16 +562,16 @@ func TestNewNFSVolume(t *testing.T) {
 			name: "pv-name",
 			size: 100,
 			params: map[string]string{
-				paramServer:     "//nfs-server.default.svc.cluster.local",
+				paramServer:     "//sshfs-server.default.svc.cluster.local",
 				paramShare:      "share",
 				paramSubDir:     fmt.Sprintf("subdir-%s-%s-%s", pvcNameMetadata, pvcNamespaceMetadata, pvNameMetadata),
 				pvcNameKey:      "pvcname",
 				pvcNamespaceKey: "pvcnamespace",
 				pvNameKey:       "pvname",
 			},
-			expectVol: &nfsVolume{
-				id:      "nfs-server.default.svc.cluster.local#share#subdir-pvcname-pvcnamespace-pvname#pv-name",
-				server:  "//nfs-server.default.svc.cluster.local",
+			expectVol: &sshfsVolume{
+				id:      "sshfs-server.default.svc.cluster.local#share#subdir-pvcname-pvcnamespace-pvname#pv-name",
+				server:  "//sshfs-server.default.svc.cluster.local",
 				baseDir: "share",
 				subDir:  "subdir-pvcname-pvcnamespace-pvname",
 				size:    100,
@@ -583,12 +583,12 @@ func TestNewNFSVolume(t *testing.T) {
 			name: "pv-name",
 			size: 200,
 			params: map[string]string{
-				paramServer: "//nfs-server.default.svc.cluster.local",
+				paramServer: "//sshfs-server.default.svc.cluster.local",
 				paramShare:  "share",
 			},
-			expectVol: &nfsVolume{
-				id:      "nfs-server.default.svc.cluster.local#share#pv-name#",
-				server:  "//nfs-server.default.svc.cluster.local",
+			expectVol: &sshfsVolume{
+				id:      "sshfs-server.default.svc.cluster.local#share#pv-name#",
+				server:  "//sshfs-server.default.svc.cluster.local",
 				baseDir: "share",
 				subDir:  "pv-name",
 				size:    200,
@@ -604,7 +604,7 @@ func TestNewNFSVolume(t *testing.T) {
 	}
 
 	for _, test := range cases {
-		vol, err := newNFSVolume(test.name, test.size, test.params)
+		vol, err := newSSHFSVolume(test.name, test.size, test.params)
 		if !reflect.DeepEqual(err, test.expectErr) {
 			t.Errorf("[test: %s] Unexpected error: %v, expected error: %v", test.desc, err, test.expectErr)
 		}

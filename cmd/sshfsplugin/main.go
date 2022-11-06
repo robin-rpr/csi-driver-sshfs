@@ -20,6 +20,8 @@ import (
 	"flag"
 	"os"
 
+	nfs "github.com/robin-rpr/csi-driver-sshfs/pkg/sshfs"
+
 	"k8s.io/klog/v2"
 )
 

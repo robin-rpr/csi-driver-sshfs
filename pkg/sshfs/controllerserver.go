@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package nfs
+package sshfs
 
 import (
 	"fmt"
@@ -37,18 +37,18 @@ type ControllerServer struct {
 	Driver *Driver
 }
 
-// nfsVolume is an internal representation of a volume
+// sshfsVolume is an internal representation of a volume
 // created by the provisioner.
-type nfsVolume struct {
+type sshfsVolume struct {
 	// Volume id
 	id string
-	// Address of the NFS server.
+	// Address of the SSHFS server.
 	// Matches paramServer.
 	server string
-	// Base directory of the NFS server to create volumes under
+	// Base directory of the SSHFS server to create volumes under
 	// Matches paramShare.
 	baseDir string
-	// Subdirectory of the NFS server to create volumes under
+	// Subdirectory of the SSHFS server to create volumes under
 	subDir string
 	// size of volume
 	size int64
@@ -111,7 +111,7 @@ func (cs *ControllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 		}
 	}
 
-	nfsVol, err := newNFSVolume(name, reqCapacity, parameters)
+	sshfsVol, err := newSSHFSVolume(name, reqCapacity, parameters)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
@@ -120,19 +120,19 @@ func (cs *ControllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 	if len(req.GetVolumeCapabilities()) > 0 {
 		volCap = req.GetVolumeCapabilities()[0]
 	}
-	// Mount nfs base share so we can create a subdirectory
-	if err = cs.internalMount(ctx, nfsVol, parameters, volCap); err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to mount nfs server: %v", err.Error())
+	// Mount sshfs base share so we can create a subdirectory
+	if err = cs.internalMount(ctx, sshfsVol, parameters, volCap); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to mount sshfs server: %v", err.Error())
 	}
 	defer func() {
-		if err = cs.internalUnmount(ctx, nfsVol); err != nil {
-			klog.Warningf("failed to unmount nfs server: %v", err.Error())
+		if err = cs.internalUnmount(ctx, sshfsVol); err != nil {
+			klog.Warningf("failed to unmount sshfs server: %v", err.Error())
 		}
 	}()
 
 	fileMode := os.FileMode(mountPermissions)
 	// Create subdirectory under base-dir
-	internalVolumePath := getInternalVolumePath(cs.Driver.workingMountDir, nfsVol)
+	internalVolumePath := getInternalVolumePath(cs.Driver.workingMountDir, sshfsVol)
 	if err = os.Mkdir(internalVolumePath, fileMode); err != nil && !os.IsExist(err) {
 		return nil, status.Errorf(codes.Internal, "failed to make subdirectory: %v", err.Error())
 	}
@@ -141,10 +141,10 @@ func (cs *ControllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 		klog.Warningf("failed to chmod subdirectory: %v", err.Error())
 	}
 
-	setKeyValueInMap(parameters, paramSubDir, nfsVol.subDir)
+	setKeyValueInMap(parameters, paramSubDir, sshfsVol.subDir)
 	return &csi.CreateVolumeResponse{
 		Volume: &csi.Volume{
-			VolumeId:      nfsVol.id,
+			VolumeId:      sshfsVol.id,
 			CapacityBytes: 0, // by setting it to zero, Provisioner will use PVC requested size as PV size
 			VolumeContext: parameters,
 		},
@@ -157,10 +157,10 @@ func (cs *ControllerServer) DeleteVolume(ctx context.Context, req *csi.DeleteVol
 	if volumeID == "" {
 		return nil, status.Error(codes.InvalidArgument, "volume id is empty")
 	}
-	nfsVol, err := getNfsVolFromID(volumeID)
+	sshfsVol, err := getNfsVolFromID(volumeID)
 	if err != nil {
 		// An invalid ID should be treated as doesn't exist
-		klog.Warningf("failed to get nfs volume for volume id %v deletion: %v", volumeID, err)
+		klog.Warningf("failed to get sshfs volume for volume id %v deletion: %v", volumeID, err)
 		return &csi.DeleteVolumeResponse{}, nil
 	}
 
@@ -177,18 +177,18 @@ func (cs *ControllerServer) DeleteVolume(ctx context.Context, req *csi.DeleteVol
 		}
 	}
 
-	// mount nfs base share so we can delete the subdirectory
-	if err = cs.internalMount(ctx, nfsVol, nil, volCap); err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to mount nfs server: %v", err.Error())
+	// mount sshfs base share so we can delete the subdirectory
+	if err = cs.internalMount(ctx, sshfsVol, nil, volCap); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to mount sshfs server: %v", err.Error())
 	}
 	defer func() {
-		if err = cs.internalUnmount(ctx, nfsVol); err != nil {
-			klog.Warningf("failed to unmount nfs server: %v", err.Error())
+		if err = cs.internalUnmount(ctx, sshfsVol); err != nil {
+			klog.Warningf("failed to unmount sshfs server: %v", err.Error())
 		}
 	}()
 
 	// delete subdirectory under base-dir
-	internalVolumePath := getInternalVolumePath(cs.Driver.workingMountDir, nfsVol)
+	internalVolumePath := getInternalVolumePath(cs.Driver.workingMountDir, sshfsVol)
 
 	klog.V(2).Infof("Removing subdirectory at %v", internalVolumePath)
 	if err = os.RemoveAll(internalVolumePath); err != nil {
@@ -258,8 +258,8 @@ func (cs *ControllerServer) ControllerExpandVolume(ctx context.Context, req *csi
 	return nil, status.Error(codes.Unimplemented, "")
 }
 
-// Mount nfs server at base-dir
-func (cs *ControllerServer) internalMount(ctx context.Context, vol *nfsVolume, volumeContext map[string]string, volCap *csi.VolumeCapability) error {
+// Mount sshfs server at base-dir
+func (cs *ControllerServer) internalMount(ctx context.Context, vol *sshfsVolume, volumeContext map[string]string, volCap *csi.VolumeCapability) error {
 	if volCap == nil {
 		volCap = &csi.VolumeCapability{
 			AccessType: &csi.VolumeCapability_Mount{
@@ -276,7 +276,7 @@ func (cs *ControllerServer) internalMount(ctx context.Context, vol *nfsVolume, v
 		paramShare:  sharePath,
 	}
 	for k, v := range volumeContext {
-		// don't set subDir field since only nfs-server:/share should be mounted in CreateVolume/DeleteVolume
+		// don't set subDir field since only sshfs-server:/share should be mounted in CreateVolume/DeleteVolume
 		if strings.ToLower(k) != paramSubDir {
 			volContext[k] = v
 		}
@@ -292,11 +292,11 @@ func (cs *ControllerServer) internalMount(ctx context.Context, vol *nfsVolume, v
 	return err
 }
 
-// Unmount nfs server at base-dir
-func (cs *ControllerServer) internalUnmount(ctx context.Context, vol *nfsVolume) error {
+// Unmount sshfs server at base-dir
+func (cs *ControllerServer) internalUnmount(ctx context.Context, vol *sshfsVolume) error {
 	targetPath := getInternalMountPath(cs.Driver.workingMountDir, vol)
 
-	// Unmount nfs server at base-dir
+	// Unmount sshfs server at base-dir
 	klog.V(4).Infof("internally unmounting %v", targetPath)
 	_, err := cs.Driver.ns.NodeUnpublishVolume(ctx, &csi.NodeUnpublishVolumeRequest{
 		VolumeId:   vol.id,
@@ -305,8 +305,8 @@ func (cs *ControllerServer) internalUnmount(ctx context.Context, vol *nfsVolume)
 	return err
 }
 
-// newNFSVolume Convert VolumeCreate parameters to an nfsVolume
-func newNFSVolume(name string, size int64, params map[string]string) (*nfsVolume, error) {
+// newSSHFSVolume Convert VolumeCreate parameters to an sshfsVolume
+func newSSHFSVolume(name string, size int64, params map[string]string) (*sshfsVolume, error) {
 	var server, baseDir, subDir string
 	subDirReplaceMap := map[string]string{}
 
@@ -332,7 +332,7 @@ func newNFSVolume(name string, size int64, params map[string]string) (*nfsVolume
 		return nil, fmt.Errorf("%v is a required parameter", paramServer)
 	}
 
-	vol := &nfsVolume{
+	vol := &sshfsVolume{
 		server:  server,
 		baseDir: baseDir,
 		size:    size,
@@ -351,7 +351,7 @@ func newNFSVolume(name string, size int64, params map[string]string) (*nfsVolume
 }
 
 // getInternalMountPath: get working directory for CreateVolume and DeleteVolume
-func getInternalMountPath(workingMountDir string, vol *nfsVolume) string {
+func getInternalMountPath(workingMountDir string, vol *sshfsVolume) string {
 	if vol == nil {
 		return ""
 	}
@@ -369,12 +369,12 @@ func getInternalMountPath(workingMountDir string, vol *nfsVolume) string {
 //     CreateVolume calls in parallel and they may use the same underlying share.
 //     Instead of refcounting how many CreateVolume calls are using the same
 //     share, it's simpler to just do a mount per request.
-func getInternalVolumePath(workingMountDir string, vol *nfsVolume) string {
+func getInternalVolumePath(workingMountDir string, vol *sshfsVolume) string {
 	return filepath.Join(getInternalMountPath(workingMountDir, vol), vol.subDir)
 }
 
-// Given a nfsVolume, return a CSI volume id
-func getVolumeIDFromNfsVol(vol *nfsVolume) string {
+// Given a sshfsVolume, return a CSI volume id
+func getVolumeIDFromNfsVol(vol *sshfsVolume) string {
 	idElements := make([]string, totalIDElements)
 	idElements[idServer] = strings.Trim(vol.server, "/")
 	idElements[idBaseDir] = strings.Trim(vol.baseDir, "/")
@@ -383,14 +383,14 @@ func getVolumeIDFromNfsVol(vol *nfsVolume) string {
 	return strings.Join(idElements, separator)
 }
 
-// Given a CSI volume id, return a nfsVolume
+// Given a CSI volume id, return a sshfsVolume
 // sample volume Id:
 //
 //	  new volumeID:
-//		    nfs-server.default.svc.cluster.local#share#pvc-4bcbf944-b6f7-4bd0-b50f-3c3dd00efc64
-//		    nfs-server.default.svc.cluster.local#share#subdir#pvc-4bcbf944-b6f7-4bd0-b50f-3c3dd00efc64
-//	  old volumeID: nfs-server.default.svc.cluster.local/share/pvc-4bcbf944-b6f7-4bd0-b50f-3c3dd00efc64
-func getNfsVolFromID(id string) (*nfsVolume, error) {
+//		    sshfs-server.default.svc.cluster.local#share#pvc-4bcbf944-b6f7-4bd0-b50f-3c3dd00efc64
+//		    sshfs-server.default.svc.cluster.local#share#subdir#pvc-4bcbf944-b6f7-4bd0-b50f-3c3dd00efc64
+//	  old volumeID: sshfs-server.default.svc.cluster.local/share/pvc-4bcbf944-b6f7-4bd0-b50f-3c3dd00efc64
+func getNfsVolFromID(id string) (*sshfsVolume, error) {
 	var server, baseDir, subDir, uuid string
 	segments := strings.Split(id, separator)
 	if len(segments) < 3 {
@@ -413,7 +413,7 @@ func getNfsVolFromID(id string) (*nfsVolume, error) {
 		}
 	}
 
-	return &nfsVolume{
+	return &sshfsVolume{
 		id:      id,
 		server:  server,
 		baseDir: baseDir,

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package nfs
+package sshfs
 
 import (
 	"fmt"
@@ -140,13 +140,13 @@ func TestGetMountOptions(t *testing.T) {
 		},
 		{
 			desc:    "valid mountOptions",
-			context: map[string]string{"mountOptions": "nfsvers=3"},
-			result:  "nfsvers=3",
+			context: map[string]string{"mountOptions": "sshfsvers=3"},
+			result:  "sshfsvers=3",
 		},
 		{
 			desc:    "valid mountOptions(lowercase)",
-			context: map[string]string{"mountoptions": "nfsvers=4"},
-			result:  "nfsvers=4",
+			context: map[string]string{"mountoptions": "sshfsvers=4"},
+			result:  "sshfsvers=4",
 		},
 	}
 

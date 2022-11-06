@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package nfs
+package sshfs
 
 import (
 	"strings"
@@ -49,10 +49,10 @@ type Driver struct {
 }
 
 const (
-	DefaultDriverName = "nfs.csi.k8s.io"
-	// Address of the NFS server
+	DefaultDriverName = "sshfs.csi.k8s.io"
+	// Address of the SSHFS server
 	paramServer = "server"
-	// Base directory of the NFS server to create volumes under.
+	// Base directory of the SSHFS server to create volumes under.
 	// The base directory must be a direct child of the root directory.
 	// The root directory is omitted from the string, for example:
 	//     "base" instead of "/base"
@@ -112,7 +112,7 @@ func (n *Driver) Run(testMode bool) {
 	s := NewNonBlockingGRPCServer()
 	s.Start(n.endpoint,
 		NewDefaultIdentityServer(n),
-		// NFS plugin has not implemented ControllerServer
+		// SSHFS plugin has not implemented ControllerServer
 		// using default controllerserver.
 		NewControllerServer(n),
 		n.ns,
