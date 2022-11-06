@@ -1,15 +1,15 @@
-# NFS CSI driver development guide
+# SSHFS CSI driver development guide
 
 ## How to build this project
  - Clone repo
 ```console
 $ mkdir -p $GOPATH/src/sigs.k8s.io/
-$ git clone https://github.com/kubernetes-csi/csi-driver-nfs $GOPATH/src/github.com/kubernetes-csi/csi-driver-nfs
+$ git clone https://github.com/kubernetes-csi/csi-driver-sshfs $GOPATH/src/github.com/kubernetes-csi/csi-driver-sshfs
 ```
 
  - Build CSI driver
 ```console
-$ cd $GOPATH/src/github.com/kubernetes-csi/csi-driver-nfs
+$ cd $GOPATH/src/github.com/kubernetes-csi/csi-driver-sshfs
 $ make
 ```
 
@@ -20,7 +20,7 @@ $ make verify
 
  - If there is config file changed under `charts` directory, run following command to update chart file
 ```console
-helm package charts/latest/csi-driver-nfs -d charts/latest/
+helm package charts/latest/csi-driver-sshfs -d charts/latest/
 ```
 
 ## How to test CSI driver in local environment
@@ -36,8 +36,8 @@ $ make build
 
 #### Start CSI driver locally
 ```console
-$ cd $GOPATH/src/github.com/kubernetes-csi/csi-driver-nfs
-$ ./bin/nfsplugin --endpoint unix:///tmp/csi.sock --nodeid CSINode -v=5 &
+$ cd $GOPATH/src/github.com/kubernetes-csi/csi-driver-sshfs
+$ ./bin/sshfsplugin --endpoint unix:///tmp/csi.sock --nodeid CSINode -v=5 &
 ```
 
 #### 0. Set environment variables
@@ -53,10 +53,10 @@ $ params="server=127.0.0.1,share=/"
 #### 1. Get plugin info
 ```console
 $ csc identity plugin-info --endpoint "$endpoint"
-"nfs.csi.k8s.io"    "v2.0.0"
+"sshfs.csi.k8s.io"    "v2.0.0"
 ```
 
-#### 2. Create a new nfs volume
+#### 2. Create a new sshfs volume
 ```console
 $ value="$(csc controller new --endpoint "$endpoint" --cap "$cap" "$volname" --req-bytes "$volsize" --params "$params")"
 $ sleep 15
@@ -64,12 +64,12 @@ $ volumeid="$(echo "$value" | awk '{print $1}' | sed 's/"//g')"
 $ echo "Got volume id: $volumeid"
 ```
 
-#### 3. Publish a nfs volume
+#### 3. Publish a sshfs volume
 ```
 $ csc node publish --endpoint "$endpoint" --cap "$cap" --vol-context "$params" --target-path "$target_path" "$volumeid"
 ```
 
-#### 4. Unpublish a nfs volume
+#### 4. Unpublish a sshfs volume
 ```console
 $ csc node unpublish --endpoint "$endpoint" --target-path "$target_path" "$volumeid"
 ```
@@ -79,7 +79,7 @@ $ csc node unpublish --endpoint "$endpoint" --target-path "$target_path" "$volum
 $ csc controller validate-volume-capabilities --endpoint "$endpoint" --cap "$cap" "$volumeid"
 ```
 
-#### 7. Delete the nfs volume
+#### 7. Delete the sshfs volume
 ```console
 $ csc controller del --endpoint "$endpoint" "$volumeid" --timeout 10m
 ```
@@ -111,7 +111,7 @@ make push
 - Run E2E test on the Kubernetes cluster.
 
 ```console
-# install NFS CSI Driver on the Kubernetes cluster
+# install SSHFS CSI Driver on the Kubernetes cluster
 make e2e-bootstrap
 
 # run the E2E test
