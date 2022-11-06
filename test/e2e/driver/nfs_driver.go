@@ -21,7 +21,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/robin-rpr/csi-driver-nfs/pkg/nfs"
+	"github.com/robin-rpr/csi-driver-sshfs/pkg/nfs"
 	v1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/resource"

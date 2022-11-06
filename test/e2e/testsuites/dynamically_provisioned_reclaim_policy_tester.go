@@ -18,7 +18,7 @@ package testsuites
 
 import (
 	"github.com/kubernetes-csi/csi-driver-nfs/test/e2e/driver"
-	"github.com/robin-rpr/csi-driver-nfs/pkg/nfs"
+	"github.com/robin-rpr/csi-driver-sshfs/pkg/nfs"
 
 	v1 "k8s.io/api/core/v1"
 	clientset "k8s.io/client-go/kubernetes"
