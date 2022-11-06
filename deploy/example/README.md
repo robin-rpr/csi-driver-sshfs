@@ -1,39 +1,43 @@
 # CSI driver example
 
-You can use NFS CSI Driver to provision Persistent Volumes statically or dynamically. Please read [Kubernetes Persistent Volumes documentation](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) for more information about Static and Dynamic provisioning.
+You can use SSHFS CSI Driver to provision Persistent Volumes statically or dynamically. Please read [Kubernetes Persistent Volumes documentation](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) for more information about Static and Dynamic provisioning.
 
 Please refer to [driver parameters](../../docs/driver-parameters.md) for more detailed usage.
 
 ## Prerequisite
 
-- [Set up a NFS Server on a Kubernetes cluster](./nfs-provisioner/README.md) as an example
-- [Install NFS CSI Driver](../../docs/install-nfs-csi-driver.md)
+- [Set up a SSHFS Server on a Kubernetes cluster](./sshfs-provisioner/README.md) as an example
+- [Install SSHFS CSI Driver](../../docs/install-sshfs-csi-driver.md)
 
 ## Storage Class Usage (Dynamic Provisioning)
 
  -  Create a storage class
- > change `server`, `share` with your existing NFS server address and share name
+ > change `server`, `share`, `privateKey` with your existing SSHFS server address, share name, and client private key
 ```yaml
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  name: nfs-csi
-provisioner: nfs.csi.k8s.io
+  name: sshfs-csi
+provisioner: sshfs.csi.k8s.io
 parameters:
-  server: nfs-server.default.svc.cluster.local
+  server: sshfs-server.default.svc.cluster.local
   share: /
+  private-key-name: "nginx-pod-rsa-key"
+  private-key-namespace: "default"
+  port: "2222"
+  user: "linuxserver.io"
   # csi.storage.k8s.io/provisioner-secret is only needed for providing mountOptions in DeleteVolume
   # csi.storage.k8s.io/provisioner-secret-name: "mount-options"
   # csi.storage.k8s.io/provisioner-secret-namespace: "default"
 reclaimPolicy: Delete
 volumeBindingMode: Immediate
 mountOptions:
-  - nfsvers=4.1
+  - sshfsvers=3.7.3
 ```
 
  - create PVC
 ```console
-kubectl create -f https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/deploy/example/pvc-nfs-csi-dynamic.yaml
+kubectl create -f https://raw.githubusercontent.com/robin-rpr/csi-driver-sshfs/master/deploy/example/pvc-sshfs-csi-dynamic.yaml
 ```
 
 ## PV/PVC Usage (Static Provisioning)
@@ -42,13 +46,13 @@ kubectl create -f https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nf
 
 ```bash
 # create PV
-kubectl create -f https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/deploy/example/pv-nfs-csi.yaml
+kubectl create -f https://raw.githubusercontent.com/robin-rpr/csi-driver-sshfs/master/deploy/example/pv-sshfs-csi.yaml
 
 # create PVC
-kubectl create -f https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/deploy/example/pvc-nfs-csi-static.yaml
+kubectl create -f https://raw.githubusercontent.com/robin-rpr/csi-driver-sshfs/master/deploy/example/pvc-sshfs-csi-static.yaml
 ```
 
 ## Create a deployment
 ```console
-kubectl create -f https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/deploy/example/deployment.yaml
+kubectl create -f https://raw.githubusercontent.com/robin-rpr/csi-driver-sshfs/master/deploy/example/deployment.yaml
 ```

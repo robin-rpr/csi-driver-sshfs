@@ -10,14 +10,18 @@ spec:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Delete
   mountOptions:
-    - nfsvers=4.1
+    - sshfsvers=3.7.3
   csi:
-    driver: nfs.csi.k8s.io
+    driver: sshfs.csi.k8s.io
     readOnly: false
     volumeHandle: unique-volumeid  # make sure it's a unique id in the cluster
     volumeAttributes:
-      server: nfs-server.default.svc.cluster.local
+      server: sshfs-server.default.svc.cluster.local
       share: /
+      port: "2222"
+      private-key-name: "nginx-pod-rsa-key"  # make sure it's a private key secret
+      private-key-namespace: "default"
+      user: "linuxserver.io"
 ---
 kind: PersistentVolumeClaim
 apiVersion: v1
@@ -35,7 +39,7 @@ spec:
 apiVersion: v1
 kind: Pod
 metadata:
-  name: nginx-nfs-example
+  name: nginx-sshfs-example
 spec:
   containers:
     - image: nginx

@@ -1,0 +1,68 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: sshfs-server
+  labels:
+    app: sshfs-server
+spec:
+  type: ClusterIP  # use "LoadBalancer" to get a public ip
+  selector:
+    app: sshfs-server
+  ports:
+    - name: tcp-222
+      port: 222
+      protocol: TCP
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: sshfs-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sshfs-server
+  template:
+    metadata:
+      name: sshfs-server
+      labels:
+        app: sshfs-server
+    spec:
+      nodeSelector:
+        "kubernetes.io/os": linux
+      containers:
+        - name: sshfs-server
+          image: lscr.io/linuxserver/openssh-server:latest
+          env:
+            - name: PUID
+              value: 1000
+            - name: PGID
+              value: 1000
+            - name: TZ
+              value: Europe/London
+            - name: PUBLIC_KEY_DIR
+              value: /config
+            - name: SUDO_ACCESS
+              value: false
+            - name: PASSWORD_ACCESS
+              value: false
+            - name: USER_NAME
+              value: linuxserver.io
+          securityContext:
+              privileged: true
+              capabilities:
+                add:
+                  - SYS_ADMIN
+          ports:
+            - name: sshfs
+              containerPort: 2222
+              protocol: TCP
+          volumeMounts:
+            - name: nginx-pod-public-key-volume
+              mountPath: "/config/id_rsa.pub"
+      volumes:
+        - name: nginx-pod-public-key-volume
+          secret:
+            secretName: nginx-pod-rsa-key-public
+            defaultMode: 256

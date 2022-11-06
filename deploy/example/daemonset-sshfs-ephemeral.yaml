@@ -2,15 +2,15 @@
 kind: DaemonSet
 apiVersion: apps/v1
 metadata:
-  name: daemonset-nfs-ephemeral
+  name: daemonset-sshfs-ephemeral
 spec:
   selector:
     matchLabels:
-      app: daemonset-nfs-ephemeral
+      app: daemonset-sshfs-ephemeral
   template:
     metadata:
       labels:
-        app: daemonset-nfs-ephemeral
+        app: daemonset-sshfs-ephemeral
     spec:
       nodeSelector:
         kubernetes.io/os: linux
@@ -20,13 +20,13 @@ spec:
           command:
             - "/bin/bash"
             - "-c"
-            - set -euo pipefail; while true; do echo $(date) >> /mnt/nfs/outfile; sleep 1; done
+            - set -euo pipefail; while true; do echo $(date) >> /mnt/sshfs/outfile; sleep 1; done
           volumeMounts:
-            - name: nfs
-              mountPath: "/mnt/nfs"
+            - name: sshfs
+              mountPath: "/mnt/sshfs"
               readOnly: false
       volumes:
-        - name: nfs
+        - name: sshfs
           ephemeral:
             volumeClaimTemplate:
               spec:
@@ -35,4 +35,4 @@ spec:
                 resources:
                   requests:
                     storage: 10Gi
-                storageClassName: nfs-csi
+                storageClassName: sshfs-csi

@@ -8,19 +8,23 @@ spec:
     "kubernetes.io/os": linux
   containers:
     - image: mcr.microsoft.com/oss/nginx/nginx:1.19.5
-      name: nginx-nfs
+      name: nginx-sshfs
       command:
         - "/bin/bash"
         - "-c"
-        - set -euo pipefail; while true; do echo $(date) >> /mnt/nfs/outfile; sleep 1; done
+        - set -euo pipefail; while true; do echo $(date) >> /mnt/sshfs/outfile; sleep 1; done
       volumeMounts:
         - name: persistent-storage
-          mountPath: "/mnt/nfs"
+          mountPath: "/mnt/sshfs"
   volumes:
     - name: persistent-storage
       csi:
-        driver: nfs.csi.k8s.io
+        driver: sshfs.csi.k8s.io
         volumeAttributes:
-          server: nfs-server.default.svc.cluster.local  # required
+          server: sshfs-server.default.svc.cluster.local  # required
           share: /  # required
-          mountOptions: "nfsvers=4.1,sec=sys"  # optional
+          port: "2222"
+          private-key-name: "nginx-pod-rsa-key"  # make sure it's a private key secret
+          private-key-namespace: "default"
+          user: "linuxserver.io"
+          mountOptions: "sshfsvers=3.7.3,sec=sys"  # optional

@@ -2,11 +2,11 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: statefulset-nfs
+  name: statefulset-sshfs
   labels:
     app: nginx
 spec:
-  serviceName: statefulset-nfs
+  serviceName: statefulset-sshfs
   replicas: 1
   template:
     metadata:
@@ -16,15 +16,15 @@ spec:
       nodeSelector:
         "kubernetes.io/os": linux
       containers:
-        - name: statefulset-nfs
+        - name: statefulset-sshfs
           image: mcr.microsoft.com/oss/nginx/nginx:1.19.5
           command:
             - "/bin/bash"
             - "-c"
-            - set -euo pipefail; while true; do echo $(date) >> /mnt/nfs/outfile; sleep 1; done
+            - set -euo pipefail; while true; do echo $(date) >> /mnt/sshfs/outfile; sleep 1; done
           volumeMounts:
             - name: persistent-storage
-              mountPath: /mnt/nfs
+              mountPath: /mnt/sshfs
   updateStrategy:
     type: RollingUpdate
   selector:
@@ -34,7 +34,7 @@ spec:
     - metadata:
         name: persistent-storage
         annotations:
-          volume.beta.kubernetes.io/storage-class: nfs-csi
+          volume.beta.kubernetes.io/storage-class: sshfs-csi
       spec:
         accessModes: ["ReadWriteOnce"]
         resources:
