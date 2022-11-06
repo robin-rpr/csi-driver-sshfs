@@ -27,7 +27,6 @@ import (
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
-	"github.com/robin-rpr/csi-driver-sshfs/pkg/nfs"
 	apps "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
