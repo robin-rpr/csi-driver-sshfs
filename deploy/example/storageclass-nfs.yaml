@@ -10,7 +10,7 @@ parameters:
   port: "2222"
   private-key-name: "nginx-pod-rsa-key"  # make sure it's a private key secret
   private-key-namespace: "default"
-  user: "linuxserver.io"
+  user: "admin"
   # csi.storage.k8s.io/provisioner-secret is only needed for providing mountOptions in DeleteVolume
   # csi.storage.k8s.io/provisioner-secret-name: "mount-options"
   # csi.storage.k8s.io/provisioner-secret-namespace: "default"

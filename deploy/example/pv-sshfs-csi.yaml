@@ -22,4 +22,4 @@ spec:
       port: "2222"
       private-key-name: "nginx-pod-rsa-key"  # make sure it's a private key secret
       private-key-namespace: "default"
-      user: "linuxserver.io"
+      user: "admin"

@@ -48,7 +48,7 @@ spec:
             - name: PASSWORD_ACCESS
               value: false
             - name: USER_NAME
-              value: linuxserver.io
+              value: admin
           securityContext:
               privileged: true
               capabilities:
