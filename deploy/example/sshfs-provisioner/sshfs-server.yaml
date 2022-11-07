@@ -50,10 +50,10 @@ spec:
             - name: USER_NAME
               value: admin
           securityContext:
-              privileged: true
-              capabilities:
-                add:
-                  - SYS_ADMIN
+            privileged: true
+            capabilities:
+              add:
+                - SYS_ADMIN
           ports:
             - name: sshfs
               containerPort: 2222
