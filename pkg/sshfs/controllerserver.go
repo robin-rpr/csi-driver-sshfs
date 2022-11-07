@@ -157,7 +157,7 @@ func (cs *ControllerServer) DeleteVolume(ctx context.Context, req *csi.DeleteVol
 	if volumeID == "" {
 		return nil, status.Error(codes.InvalidArgument, "volume id is empty")
 	}
-	sshfsVol, err := getNfsVolFromID(volumeID)
+	sshfsVol, err := getSshfsVolFromID(volumeID)
 	if err != nil {
 		// An invalid ID should be treated as doesn't exist
 		klog.Warningf("failed to get sshfs volume for volume id %v deletion: %v", volumeID, err)
@@ -346,7 +346,7 @@ func newSSHFSVolume(name string, size int64, params map[string]string) (*sshfsVo
 		// make volume id unique if subDir is provided
 		vol.uuid = name
 	}
-	vol.id = getVolumeIDFromNfsVol(vol)
+	vol.id = getVolumeIDFromSshfsVol(vol)
 	return vol, nil
 }
 
@@ -374,7 +374,7 @@ func getInternalVolumePath(workingMountDir string, vol *sshfsVolume) string {
 }
 
 // Given a sshfsVolume, return a CSI volume id
-func getVolumeIDFromNfsVol(vol *sshfsVolume) string {
+func getVolumeIDFromSshfsVol(vol *sshfsVolume) string {
 	idElements := make([]string, totalIDElements)
 	idElements[idServer] = strings.Trim(vol.server, "/")
 	idElements[idBaseDir] = strings.Trim(vol.baseDir, "/")
@@ -390,7 +390,7 @@ func getVolumeIDFromNfsVol(vol *sshfsVolume) string {
 //		    sshfs-server.default.svc.cluster.local#share#pvc-4bcbf944-b6f7-4bd0-b50f-3c3dd00efc64
 //		    sshfs-server.default.svc.cluster.local#share#subdir#pvc-4bcbf944-b6f7-4bd0-b50f-3c3dd00efc64
 //	  old volumeID: sshfs-server.default.svc.cluster.local/share/pvc-4bcbf944-b6f7-4bd0-b50f-3c3dd00efc64
-func getNfsVolFromID(id string) (*sshfsVolume, error) {
+func getSshfsVolFromID(id string) (*sshfsVolume, error) {
 	var server, baseDir, subDir, uuid string
 	segments := strings.Split(id, separator)
 	if len(segments) < 3 {

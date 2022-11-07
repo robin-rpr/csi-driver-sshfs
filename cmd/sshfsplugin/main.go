@@ -20,7 +20,7 @@ import (
 	"flag"
 	"os"
 
-	nfs "github.com/robin-rpr/csi-driver-sshfs/pkg/sshfs"
+	sshfs "github.com/robin-rpr/csi-driver-sshfs/pkg/sshfs"
 
 	"k8s.io/klog/v2"
 )
@@ -29,8 +29,8 @@ var (
 	endpoint         = flag.String("endpoint", "unix://tmp/csi.sock", "CSI endpoint")
 	nodeID           = flag.String("nodeid", "", "node id")
 	mountPermissions = flag.Uint64("mount-permissions", 0777, "mounted folder permissions")
-	driverName       = flag.String("drivername", nfs.DefaultDriverName, "name of the driver")
-	workingMountDir  = flag.String("working-mount-dir", "/tmp", "working directory for provisioner to mount nfs shares temporarily")
+	driverName       = flag.String("drivername", sshfs.DefaultDriverName, "name of the driver")
+	workingMountDir  = flag.String("working-mount-dir", "/tmp", "working directory for provisioner to mount sshfs shares temporarily")
 )
 
 func init() {
@@ -49,13 +49,13 @@ func main() {
 }
 
 func handle() {
-	driverOptions := nfs.DriverOptions{
+	driverOptions := sshfs.DriverOptions{
 		NodeID:           *nodeID,
 		DriverName:       *driverName,
 		Endpoint:         *endpoint,
 		MountPermissions: *mountPermissions,
 		WorkingMountDir:  *workingMountDir,
 	}
-	d := nfs.NewDriver(&driverOptions)
+	d := sshfs.NewDriver(&driverOptions)
 	d.Run(false)
 }

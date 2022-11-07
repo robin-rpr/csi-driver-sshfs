@@ -354,7 +354,7 @@ func TestControllerGetCapabilities(t *testing.T) {
 	}
 }
 
-func TestNfsVolFromId(t *testing.T) {
+func TestSshfsVolFromId(t *testing.T) {
 	cases := []struct {
 		name      string
 		volumeID  string
@@ -434,7 +434,7 @@ func TestNfsVolFromId(t *testing.T) {
 	for _, test := range cases {
 		test := test //pin
 		t.Run(test.name, func(t *testing.T) {
-			resp, err := getNfsVolFromID(test.volumeID)
+			resp, err := getSshfsVolFromID(test.volumeID)
 
 			if !test.expectErr && err != nil {
 				t.Errorf("test %q failed: %v", test.name, err)

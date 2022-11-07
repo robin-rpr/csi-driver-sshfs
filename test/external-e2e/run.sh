@@ -32,17 +32,17 @@ setup_e2e_binaries() {
     export EXTRA_HELM_OPTIONS="--set driver.name=$DRIVER.csi.k8s.io --set controller.name=csi-$DRIVER-controller --set node.name=csi-$DRIVER-node --set feature.enableInlineVolume=true"
 
     # test on alternative driver name
-    sed -i "s/nfs.csi.k8s.io/$DRIVER.csi.k8s.io/g" deploy/example/storageclass-nfs.yaml
+    sed -i "s/sshfs.csi.k8s.io/$DRIVER.csi.k8s.io/g" deploy/example/storageclass-sshfs.yaml
     # install csi driver
-    mkdir -p /tmp/csi && cp deploy/example/storageclass-nfs.yaml /tmp/csi/storageclass.yaml
+    mkdir -p /tmp/csi && cp deploy/example/storageclass-sshfs.yaml /tmp/csi/storageclass.yaml
     make e2e-bootstrap
-    make install-nfs-server
+    make install-sshfs-server
 }
 
 print_logs() {
     bash ./hack/verify-examples.sh ephemeral
     echo "print out driver logs ..."
-    bash ./test/utils/nfs_log.sh $DRIVER
+    bash ./test/utils/sshfs_log.sh $DRIVER
 }
 
 install_ginkgo

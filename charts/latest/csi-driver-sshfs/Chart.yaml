@@ -1,0 +1,5 @@
+apiVersion: v1
+appVersion: latest
+description: CSI SSHFS Driver for Kubernetes
+name: csi-driver-sshfs
+version: v0.0.0

@@ -29,7 +29,7 @@ rollout_and_wait() {
 
 echo "begin to create deployment examples ..."
 
-kubectl apply -f ./deploy/example/storageclass-nfs.yaml
+kubectl apply -f ./deploy/example/storageclass-sshfs.yaml
 
 EXAMPLES+=(\
     deploy/example/deployment.yaml \
@@ -38,7 +38,7 @@ EXAMPLES+=(\
 
 if [[ "$#" -gt 0 ]]&&[[ "$1" == *"ephemeral"* ]]; then
     EXAMPLES+=(\
-        deploy/example/daemonset-nfs-ephemeral.yaml \
+        deploy/example/daemonset-sshfs-ephemeral.yaml \
     )
 fi
 

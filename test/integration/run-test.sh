@@ -21,21 +21,21 @@ if [[ -z "$(command -v csc)" ]]; then
 fi
 
 function cleanup {
-  echo 'pkill -f nfsplugin'
-  pkill -f nfsplugin
-  echo 'Uninstalling NFS server on localhost'
-  docker rm nfs -f
+  echo 'pkill -f sshfsplugin'
+  pkill -f sshfsplugin
+  echo 'Uninstalling SSHFS server on localhost'
+  docker rm sshfs -f
 }
 trap cleanup EXIT
 
-function provision_nfs_server {
-  echo 'Installing NFS server on localhost'
+function provision_sshfs_server {
+  echo 'Installing SSHFS server on localhost'
   apt-get update -y
-  apt-get install -y nfs-common
-  docker run -d --name nfs --privileged -p 2049:2049 -v "$(pwd)"/nfsshare:/nfsshare -e SHARED_DIRECTORY=/nfsshare itsthenetwork/nfs-server-alpine:latest
+  apt-get install -y sshfs-common
+  docker run -d --name sshfs --privileged -p 2049:2049 -v "$(pwd)"/sshfsshare:/sshfsshare -e SHARED_DIRECTORY=/sshfsshare itsthenetwork/sshfs-server-alpine:latest
 }
 
-provision_nfs_server
+provision_sshfs_server
 
 readonly CSC_BIN="$GOBIN/csc"
 readonly cap="1,mount,"
@@ -51,7 +51,7 @@ if [[ "$#" -gt 0 ]] && [[ -n "$1" ]]; then
 fi
 
 # Run CSI driver as a background service
-bin/nfsplugin --endpoint "$endpoint" --nodeid "$nodeid" -v=5 &
+bin/sshfsplugin --endpoint "$endpoint" --nodeid "$nodeid" -v=5 &
 sleep 5
 
 echo 'Begin to run integration test...'

@@ -19,7 +19,7 @@ if [[ -z "$(command -v yamllint)" ]]; then
 fi
 
 LOG=/tmp/yamllint.log
-helmPath=charts/latest/csi-driver-nfs/templates
+helmPath=charts/latest/csi-driver-sshfs/templates
 
 echo "checking yaml files num ..."
 deployDirNum=`ls deploy/*.yaml | wc -l`
@@ -29,7 +29,7 @@ if [[ "${deployDirNum}" != "${helmDirNum}" ]]; then
   exit 1
 fi
 
-for path in "deploy/*.yaml" "deploy/example/*.yaml" "deploy/example/nfs-provisioner/*.yaml"
+for path in "deploy/*.yaml" "deploy/example/*.yaml" "deploy/example/sshfs-provisioner/*.yaml"
 do
     echo "checking yamllint under path: $path ..."
     yamllint -f parsable $path | grep -v "line too long" > $LOG

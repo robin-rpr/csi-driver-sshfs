@@ -2,7 +2,7 @@
 
 approvers:
 - kubernetes-csi-approvers
-- pohly
+- robin-rpr
 
 reviewers:
 - kubernetes-csi-reviewers

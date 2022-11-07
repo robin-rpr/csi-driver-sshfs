@@ -19,16 +19,16 @@ package e2e
 import (
 	"fmt"
 
-	"github.com/kubernetes-csi/csi-driver-nfs/test/e2e/driver"
-	"github.com/kubernetes-csi/csi-driver-nfs/test/e2e/testsuites"
 	"github.com/onsi/ginkgo"
+	"github.com/robin-rpr/csi-driver-sshfs/test/e2e/driver"
+	"github.com/robin-rpr/csi-driver-sshfs/test/e2e/testsuites"
 	v1 "k8s.io/api/core/v1"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/test/e2e/framework"
 )
 
 var _ = ginkgo.Describe("Dynamic Provisioning", func() {
-	f := framework.NewDefaultFramework("nfs")
+	f := framework.NewDefaultFramework("sshfs")
 
 	var (
 		cs         clientset.Interface
@@ -49,8 +49,8 @@ var _ = ginkgo.Describe("Dynamic Provisioning", func() {
 		ns = f.Namespace
 	})
 
-	testDriver = driver.InitNFSDriver()
-	ginkgo.It("should create a volume on demand with mount options [nfs.csi.k8s.io]", func() {
+	testDriver = driver.InitSSHFSDriver()
+	ginkgo.It("should create a volume on demand with mount options [sshfs.csi.k8s.io]", func() {
 		pods := []testsuites.PodDetails{
 			{
 				Cmd: "echo 'hello world' > /mnt/test-1/data && grep 'hello world' /mnt/test-1/data",
@@ -73,7 +73,7 @@ var _ = ginkgo.Describe("Dynamic Provisioning", func() {
 		test.Run(cs, ns)
 	})
 
-	ginkgo.It("should create a volume on demand with zero mountPermissions [nfs.csi.k8s.io]", func() {
+	ginkgo.It("should create a volume on demand with zero mountPermissions [sshfs.csi.k8s.io]", func() {
 		pods := []testsuites.PodDetails{
 			{
 				Cmd: "echo 'hello world' > /mnt/test-1/data && grep 'hello world' /mnt/test-1/data",
@@ -96,7 +96,7 @@ var _ = ginkgo.Describe("Dynamic Provisioning", func() {
 		test.Run(cs, ns)
 	})
 
-	ginkgo.It("should create multiple PV objects, bind to PVCs and attach all to different pods on the same node [nfs.csi.k8s.io]", func() {
+	ginkgo.It("should create multiple PV objects, bind to PVCs and attach all to different pods on the same node [sshfs.csi.k8s.io]", func() {
 		pods := []testsuites.PodDetails{
 			{
 				Cmd: "while true; do echo $(date -u) >> /mnt/test-1/data; sleep 100; done",
@@ -133,7 +133,7 @@ var _ = ginkgo.Describe("Dynamic Provisioning", func() {
 	})
 
 	// Track issue https://github.com/kubernetes/kubernetes/issues/70505
-	ginkgo.It("should create a volume on demand and mount it as readOnly in a pod [nfs.csi.k8s.io]", func() {
+	ginkgo.It("should create a volume on demand and mount it as readOnly in a pod [sshfs.csi.k8s.io]", func() {
 		pods := []testsuites.PodDetails{
 			{
 				Cmd: "touch /mnt/test-1/data",
@@ -157,7 +157,7 @@ var _ = ginkgo.Describe("Dynamic Provisioning", func() {
 		test.Run(cs, ns)
 	})
 
-	ginkgo.It("should create a deployment object, write and read to it, delete the pod and write and read to it again [nfs.csi.k8s.io]", func() {
+	ginkgo.It("should create a deployment object, write and read to it, delete the pod and write and read to it again [sshfs.csi.k8s.io]", func() {
 		pod := testsuites.PodDetails{
 			Cmd: "echo 'hello world' >> /mnt/test-1/data && while true; do sleep 100; done",
 			Volumes: []testsuites.VolumeDetails{
@@ -186,7 +186,7 @@ var _ = ginkgo.Describe("Dynamic Provisioning", func() {
 		test.Run(cs, ns)
 	})
 
-	ginkgo.It("[subDir]should create a deployment object, write and read to it, delete the pod and write and read to it again [nfs.csi.k8s.io]", func() {
+	ginkgo.It("[subDir]should create a deployment object, write and read to it, delete the pod and write and read to it again [sshfs.csi.k8s.io]", func() {
 		pod := testsuites.PodDetails{
 			Cmd: "echo 'hello world' >> /mnt/test-1/data && while true; do sleep 100; done",
 			Volumes: []testsuites.VolumeDetails{
@@ -215,7 +215,7 @@ var _ = ginkgo.Describe("Dynamic Provisioning", func() {
 		test.Run(cs, ns)
 	})
 
-	ginkgo.It(fmt.Sprintf("should delete PV with reclaimPolicy %q [nfs.csi.k8s.io]", v1.PersistentVolumeReclaimDelete), func() {
+	ginkgo.It(fmt.Sprintf("should delete PV with reclaimPolicy %q [sshfs.csi.k8s.io]", v1.PersistentVolumeReclaimDelete), func() {
 		reclaimPolicy := v1.PersistentVolumeReclaimDelete
 		volumes := []testsuites.VolumeDetails{
 			{
@@ -232,7 +232,7 @@ var _ = ginkgo.Describe("Dynamic Provisioning", func() {
 		test.Run(cs, ns)
 	})
 
-	ginkgo.It(fmt.Sprintf("should retain PV with reclaimPolicy %q [nfs.csi.k8s.io]", v1.PersistentVolumeReclaimRetain), func() {
+	ginkgo.It(fmt.Sprintf("should retain PV with reclaimPolicy %q [sshfs.csi.k8s.io]", v1.PersistentVolumeReclaimRetain), func() {
 		reclaimPolicy := v1.PersistentVolumeReclaimRetain
 		volumes := []testsuites.VolumeDetails{
 			{
@@ -249,7 +249,7 @@ var _ = ginkgo.Describe("Dynamic Provisioning", func() {
 		test.Run(cs, ns)
 	})
 
-	ginkgo.It("should create a pod with multiple volumes [nfs.csi.k8s.io]", func() {
+	ginkgo.It("should create a pod with multiple volumes [sshfs.csi.k8s.io]", func() {
 		volumes := []testsuites.VolumeDetails{}
 		for i := 1; i <= 6; i++ {
 			volume := testsuites.VolumeDetails{
@@ -276,7 +276,7 @@ var _ = ginkgo.Describe("Dynamic Provisioning", func() {
 		test.Run(cs, ns)
 	})
 
-	ginkgo.It("should create a pod with volume mount subpath [nfs.csi.k8s.io]", func() {
+	ginkgo.It("should create a pod with volume mount subpath [sshfs.csi.k8s.io]", func() {
 		pods := []testsuites.PodDetails{
 			{
 				Cmd: convertToPowershellCommandIfNecessary("echo 'hello world' > /mnt/test-1/data && grep 'hello world' /mnt/test-1/data"),
@@ -299,7 +299,7 @@ var _ = ginkgo.Describe("Dynamic Provisioning", func() {
 		test.Run(cs, ns)
 	})
 
-	ginkgo.It("should create a CSI inline volume [nfs.csi.k8s.io]", func() {
+	ginkgo.It("should create a CSI inline volume [sshfs.csi.k8s.io]", func() {
 		pods := []testsuites.PodDetails{
 			{
 				Cmd: convertToPowershellCommandIfNecessary("echo 'hello world' > /mnt/test-1/data && grep 'hello world' /mnt/test-1/data"),
@@ -318,9 +318,9 @@ var _ = ginkgo.Describe("Dynamic Provisioning", func() {
 		test := testsuites.DynamicallyProvisionedInlineVolumeTest{
 			CSIDriver:    testDriver,
 			Pods:         pods,
-			Server:       nfsServerAddress,
-			Share:        nfsShare,
-			MountOptions: "nconnect=8,nfsvers=4.1,sec=sys",
+			Server:       sshfsServerAddress,
+			Share:        sshfsShare,
+			MountOptions: "nconnect=8,sshfsvers=4.1,sec=sys",
 			ReadOnly:     false,
 		}
 		test.Run(cs, ns)

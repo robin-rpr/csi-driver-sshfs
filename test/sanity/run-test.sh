@@ -17,12 +17,12 @@
 set -eo pipefail
 
 function cleanup {
-  echo 'pkill -f nfsplugin'
-  pkill -f nfsplugin
+  echo 'pkill -f sshfsplugin'
+  pkill -f sshfsplugin
   echo 'Deleting CSI sanity test binary'
   rm -rf csi-test
-  echo 'Uninstalling NFS server on localhost'
-  docker rm nfs -f
+  echo 'Uninstalling SSHFS server on localhost'
+  docker rm sshfs -f
 }
 trap cleanup EXIT
 
@@ -38,15 +38,15 @@ function install_csi_sanity_bin {
   popd
 }
 
-function provision_nfs_server {
-  echo 'Installing NFS server on localhost'
+function provision_sshfs_server {
+  echo 'Installing SSHFS server on localhost'
   apt-get update -y
-  apt-get install -y nfs-common
-  docker run -d --name nfs --privileged -p 2049:2049 -v "$(pwd)"/nfsshare:/nfsshare -e SHARED_DIRECTORY=/nfsshare itsthenetwork/nfs-server-alpine:latest
+  apt-get install -y sshfs-common
+  docker run -d --name sshfs --privileged -p 2049:2049 -v "$(pwd)"/sshfsshare:/sshfsshare -e SHARED_DIRECTORY=/sshfsshare itsthenetwork/sshfs-server-alpine:latest
 }
 
-provision_nfs_server
-# wait for nfs-server running complete
+provision_sshfs_server
+# wait for sshfs-server running complete
 sleep 10
 install_csi_sanity_bin
 
@@ -56,7 +56,7 @@ if [[ "$#" -gt 0 ]] && [[ -n "$1" ]]; then
   nodeid="$1"
 fi
 
-bin/nfsplugin --endpoint "$endpoint" --nodeid "$nodeid" -v=5 &
+bin/sshfsplugin --endpoint "$endpoint" --nodeid "$nodeid" -v=5 &
 
 echo 'Begin to run sanity test...'
 readonly CSI_SANITY_BIN='csi-sanity'

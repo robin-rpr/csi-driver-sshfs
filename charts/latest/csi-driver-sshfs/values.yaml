@@ -1,8 +1,8 @@
 customLabels: {}
 image:
-    nfs:
-        repository: gcr.io/k8s-staging-sig-storage/nfsplugin
-        tag: canary
+    sshfs:
+        repository: ghcr.io/robin-rpr/sshfsplugin
+        tag: nightly
         pullPolicy: IfNotPresent
     csiProvisioner:
         repository: registry.k8s.io/sig-storage/csi-provisioner
@@ -19,14 +19,14 @@ image:
 
 serviceAccount:
   create: true # When true, service accounts will be created for you. Set to false if you want to use your own.
-  controller: csi-nfs-controller-sa # Name of Service Account to be created or used
+  controller: csi-sshfs-controller-sa # Name of Service Account to be created or used
 
 rbac:
   create: true
-  name: nfs
+  name: sshfs
 
 driver:
-  name: nfs.csi.k8s.io
+  name: sshfs.csi.k8s.io
   mountPermissions: 0777
 
 feature:
@@ -36,7 +36,7 @@ feature:
 kubeletDir: /var/lib/kubelet
 
 controller:
-  name: csi-nfs-controller
+  name: csi-sshfs-controller
   replicas: 1
   strategyType: Recreate
   runOnMaster: false
@@ -71,7 +71,7 @@ controller:
       requests:
         cpu: 10m
         memory: 20Mi
-    nfs:
+    sshfs:
       limits:
         memory: 200Mi
       requests:
@@ -79,7 +79,7 @@ controller:
         memory: 20Mi
 
 node:
-  name: csi-nfs-node
+  name: csi-sshfs-node
   dnsPolicy: Default  # available values: Default, ClusterFirstWithHostNet, ClusterFirst
   maxUnavailable: 1
   logLevel: 5
@@ -102,7 +102,7 @@ node:
       requests:
         cpu: 10m
         memory: 20Mi
-    nfs:
+    sshfs:
       limits:
         memory: 300Mi
       requests:

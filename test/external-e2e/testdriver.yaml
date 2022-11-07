@@ -5,7 +5,7 @@ StorageClass:
   FromFile: /tmp/csi/storageclass.yaml
 DriverInfo:
   Name: test.csi.k8s.io
-  SupportedFsType: {"nfs"}
+  SupportedFsType: {"sshfs"}
   Capabilities:
     persistence: true
     exec: true
@@ -14,6 +14,6 @@ DriverInfo:
     fsGroup: true
 InlineVolumes:
 - Attributes:
-    server: nfs-server.default.svc.cluster.local
+    server: sshfs-server.default.svc.cluster.local
     share: /
   Shared: true

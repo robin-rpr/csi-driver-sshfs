@@ -1,11 +1,10 @@
-# This YAML file contains driver-registrar & csi driver nodeplugin API objects
-# that are necessary to run CSI nodeplugin for nfs
+---
 kind: DaemonSet
 apiVersion: apps/v1
 metadata:
   name: {{ .Values.node.name }}
   namespace: {{ .Release.Namespace }}
-{{ include "nfs.labels" . | indent 2 }}
+{{ include "sshfs.labels" . | indent 2 }}
 spec:
   updateStrategy:
     rollingUpdate:
@@ -16,17 +15,25 @@ spec:
       app: {{ .Values.node.name }}
   template:
     metadata:
-{{ include "nfs.labels" . | indent 6 }}
+{{ include "sshfs.labels" . | indent 6 }}
         app: {{ .Values.node.name }}
     spec:
       {{- if .Values.imagePullSecrets }}
       imagePullSecrets:
 {{ toYaml .Values.imagePullSecrets | indent 8 }}
       {{- end }}
-      hostNetwork: true # original nfs connection would be broken without hostNetwork setting
-      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: true # original sshfs connection would be broken without hostNetwork setting
+      dnsPolicy: {{ .Values.controller.dnsPolicy }}
+      serviceAccountName: csi-sshfs-node-sa
+{{- with .Values.node.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+{{- end }}
       nodeSelector:
         kubernetes.io/os: linux
+{{- with .Values.node.nodeSelector }}
+{{ toYaml . | indent 8 }}
+{{- end }}
 {{- with .Values.node.tolerations }}
       tolerations:
 {{ toYaml . | indent 8 }}
@@ -60,7 +67,7 @@ spec:
             - --kubelet-registration-path=$(DRIVER_REG_SOCK_PATH)
           env:
             - name: DRIVER_REG_SOCK_PATH
-              value: /var/lib/kubelet/plugins/csi-nfsplugin/csi.sock
+              value: {{ .Values.kubeletDir }}/plugins/csi-sshfsplugin/csi.sock
             - name: KUBE_NODE_NAME
               valueFrom:
                 fieldRef:
@@ -72,13 +79,13 @@ spec:
             - name: registration-dir
               mountPath: /registration
           resources: {{- toYaml .Values.node.resources.nodeDriverRegistrar | nindent 12 }}
-        - name: nfs
+        - name: sshfs
           securityContext:
             privileged: true
             capabilities:
               add: ["SYS_ADMIN"]
             allowPrivilegeEscalation: true
-          image: "{{ .Values.image.nfs.repository }}:{{ .Values.image.nfs.tag }}"
+          image: "{{ .Values.image.sshfs.repository }}:{{ .Values.image.sshfs.tag }}"
           args :
             - "--v={{ .Values.node.logLevel }}"
             - "--nodeid=$(NODE_ID)"
@@ -104,24 +111,24 @@ spec:
             initialDelaySeconds: 30
             timeoutSeconds: 10
             periodSeconds: 30
-          imagePullPolicy: {{ .Values.image.nfs.pullPolicy }}
+          imagePullPolicy: {{ .Values.image.sshfs.pullPolicy }}
           volumeMounts:
             - name: socket-dir
               mountPath: /csi
             - name: pods-mount-dir
-              mountPath: /var/lib/kubelet/pods
+              mountPath: {{ .Values.kubeletDir }}/pods
               mountPropagation: "Bidirectional"
-          resources: {{- toYaml .Values.node.resources.nfs | nindent 12 }}
+          resources: {{- toYaml .Values.node.resources.sshfs | nindent 12 }}
       volumes:
         - name: socket-dir
           hostPath:
-            path: /var/lib/kubelet/plugins/csi-nfsplugin
+            path: {{ .Values.kubeletDir }}/plugins/csi-sshfsplugin
             type: DirectoryOrCreate
         - name: pods-mount-dir
           hostPath:
-            path: /var/lib/kubelet/pods
+            path: {{ .Values.kubeletDir }}/pods
             type: Directory
         - hostPath:
-            path: /var/lib/kubelet/plugins_registry
+            path: {{ .Values.kubeletDir }}/plugins_registry
             type: Directory
           name: registration-dir

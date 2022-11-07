@@ -29,44 +29,45 @@ import (
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	"github.com/pborman/uuid"
+	"github.com/robin-rpr/csi-driver-sshfs/pkg/sshfs"
 	"k8s.io/kubernetes/test/e2e/framework"
 	"k8s.io/kubernetes/test/e2e/framework/config"
 )
 
 const (
-	kubeconfigEnvVar  = "KUBECONFIG"
-	testWindowsEnvVar = "TEST_WINDOWS"
-	nfsServerAddress  = "nfs-server.default.svc.cluster.local"
-	nfsShare          = "/"
+	kubeconfigEnvVar   = "KUBECONFIG"
+	testWindowsEnvVar  = "TEST_WINDOWS"
+	sshfsServerAddress = "sshfs-server.default.svc.cluster.local"
+	sshfsShare         = "/"
 )
 
 var (
 	nodeID                        = os.Getenv("NODE_ID")
-	nfsDriver                     *nfs.Driver
+	sshfsDriver                   *sshfs.Driver
 	isWindowsCluster              = os.Getenv(testWindowsEnvVar) != ""
 	defaultStorageClassParameters = map[string]string{
-		"server": nfsServerAddress,
-		"share":  nfsShare,
+		"server": sshfsServerAddress,
+		"share":  sshfsShare,
 		"csi.storage.k8s.io/provisioner-secret-name":      "mount-options",
 		"csi.storage.k8s.io/provisioner-secret-namespace": "default",
 		"mountPermissions": "0755",
 	}
 	storageClassParametersWithZeroMountPermisssions = map[string]string{
-		"server": nfsServerAddress,
-		"share":  nfsShare,
+		"server": sshfsServerAddress,
+		"share":  sshfsShare,
 		"csi.storage.k8s.io/provisioner-secret-name":      "mount-options",
 		"csi.storage.k8s.io/provisioner-secret-namespace": "default",
 		"mountPermissions": "0",
 	}
 	subDirStorageClassParameters = map[string]string{
-		"server": nfsServerAddress,
-		"share":  nfsShare,
+		"server": sshfsServerAddress,
+		"share":  sshfsShare,
 		"subDir": "subDirectory-${pvc.metadata.namespace}",
 		"csi.storage.k8s.io/provisioner-secret-name":      "mount-options",
 		"csi.storage.k8s.io/provisioner-secret-namespace": "default",
 		"mountPermissions": "0755",
 	}
-	controllerServer *nfs.ControllerServer
+	controllerServer *sshfs.ControllerServer
 )
 
 type testCmd struct {
@@ -86,33 +87,33 @@ var _ = ginkgo.BeforeSuite(func() {
 	handleFlags()
 	framework.AfterReadingAllFlags(&framework.TestContext)
 
-	options := nfs.DriverOptions{
+	options := sshfs.DriverOptions{
 		NodeID:     nodeID,
-		DriverName: nfs.DefaultDriverName,
+		DriverName: sshfs.DefaultDriverName,
 		Endpoint:   fmt.Sprintf("unix:///tmp/csi-%s.sock", uuid.NewUUID().String()),
 	}
-	nfsDriver = nfs.NewDriver(&options)
-	controllerServer = nfs.NewControllerServer(nfsDriver)
+	sshfsDriver = sshfs.NewDriver(&options)
+	controllerServer = sshfs.NewControllerServer(sshfsDriver)
 
-	// install nfs server
-	installNFSServer := testCmd{
+	// install sshfs server
+	installSSHFSServer := testCmd{
 		command:  "make",
-		args:     []string{"install-nfs-server"},
-		startLog: "Installing NFS Server...",
-		endLog:   "NFS Server successfully installed",
+		args:     []string{"install-sshfs-server"},
+		startLog: "Installing SSHFS Server...",
+		endLog:   "SSHFS Server successfully installed",
 	}
 
 	e2eBootstrap := testCmd{
 		command:  "make",
 		args:     []string{"e2e-bootstrap"},
-		startLog: "Installing NFS CSI Driver...",
-		endLog:   "NFS CSI Driver Installed",
+		startLog: "Installing SSHFS CSI Driver...",
+		endLog:   "SSHFS CSI Driver Installed",
 	}
 	// todo: Install metrics server once added to this driver
 
-	execTestCmd([]testCmd{installNFSServer, e2eBootstrap})
+	execTestCmd([]testCmd{installSSHFSServer, e2eBootstrap})
 	go func() {
-		nfsDriver.Run(false)
+		sshfsDriver.Run(false)
 	}()
 
 })
@@ -126,20 +127,20 @@ var _ = ginkgo.AfterSuite(func() {
 	}
 	execTestCmd([]testCmd{createExampleDeployment})
 
-	nfsLog := testCmd{
+	sshfsLog := testCmd{
 		command:  "bash",
-		args:     []string{"test/utils/nfs_log.sh"},
-		startLog: "===================nfs log===================",
+		args:     []string{"test/utils/sshfs_log.sh"},
+		startLog: "===================sshfs log===================",
 		endLog:   "==================================================",
 	}
 
 	e2eTeardown := testCmd{
 		command:  "make",
 		args:     []string{"e2e-teardown"},
-		startLog: "Uninstalling NFS CSI Driver...",
-		endLog:   "NFS Driver uninstalled",
+		startLog: "Uninstalling SSHFS CSI Driver...",
+		endLog:   "SSHFS Driver uninstalled",
 	}
-	execTestCmd([]testCmd{nfsLog, e2eTeardown})
+	execTestCmd([]testCmd{sshfsLog, e2eTeardown})
 
 	// install/uninstall CSI Driver deployment scripts test
 	installDriver := testCmd{
@@ -175,7 +176,7 @@ func execTestCmd(cmds []testCmd) {
 
 	projectRoot, err := os.Getwd()
 	gomega.Expect(err).NotTo(gomega.HaveOccurred())
-	gomega.Expect(strings.HasSuffix(projectRoot, "csi-driver-nfs")).To(gomega.Equal(true))
+	gomega.Expect(strings.HasSuffix(projectRoot, "csi-driver-sshfs")).To(gomega.Equal(true))
 
 	for _, cmd := range cmds {
 		log.Println(cmd.startLog)

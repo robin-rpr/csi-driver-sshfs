@@ -68,7 +68,7 @@ spec:
               cpu: 10m
               memory: 20Mi
         - name: sshfs
-          image: gcr.io/k8s-staging-sig-storage/sshfsplugin:canary
+          image: ghcr.io/robin-rpr/sshfsplugin:nightly
           securityContext:
             privileged: true
             capabilities:

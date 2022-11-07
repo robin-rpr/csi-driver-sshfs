@@ -17,7 +17,7 @@ limitations under the License.
 package testsuites
 
 import (
-	"github.com/kubernetes-csi/csi-driver-nfs/test/e2e/driver"
+	"github.com/robin-rpr/csi-driver-sshfs/test/e2e/driver"
 
 	"github.com/onsi/ginkgo"
 	v1 "k8s.io/api/core/v1"

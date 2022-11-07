@@ -21,6 +21,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/robin-rpr/csi-driver-sshfs/pkg/sshfs"
 	v1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -28,23 +29,23 @@ import (
 	"k8s.io/klog/v2"
 )
 
-// NFSDriverNameVar is the environment variable use to switch the driver to be used.
-const NFSDriverNameVar = "NFS_CSI_DRIVER"
+// SSHFSDriverNameVar is the environment variable use to switch the driver to be used.
+const SSHFSDriverNameVar = "SSHFS_CSI_DRIVER"
 
-// NFSDriver implements DynamicPVTestDriver interface
-type NFSDriver struct {
+// SSHFSDriver implements DynamicPVTestDriver interface
+type SSHFSDriver struct {
 	driverName string
 }
 
-// InitNFSDriver returns NFSDriver that implements DynamicPVTestDriver interface
-func InitNFSDriver() PVTestDriver {
-	driverName := os.Getenv(NFSDriverNameVar)
+// InitSSHFSDriver returns SSHFSDriver that implements DynamicPVTestDriver interface
+func InitSSHFSDriver() PVTestDriver {
+	driverName := os.Getenv(SSHFSDriverNameVar)
 	if driverName == "" {
-		driverName = nfs.DefaultDriverName
+		driverName = sshfs.DefaultDriverName
 	}
 
-	klog.Infof("Using nfs driver: %s", driverName)
-	return &NFSDriver{
+	klog.Infof("Using sshfs driver: %s", driverName)
+	return &SSHFSDriver{
 		driverName: driverName,
 	}
 }
@@ -55,19 +56,19 @@ func normalizeProvisioner(provisioner string) string {
 	return strings.ReplaceAll(provisioner, "/", "-")
 }
 
-func (d *NFSDriver) GetDynamicProvisionStorageClass(parameters map[string]string, mountOptions []string, reclaimPolicy *v1.PersistentVolumeReclaimPolicy, bindingMode *storagev1.VolumeBindingMode, allowedTopologyValues []string, namespace string) *storagev1.StorageClass {
+func (d *SSHFSDriver) GetDynamicProvisionStorageClass(parameters map[string]string, mountOptions []string, reclaimPolicy *v1.PersistentVolumeReclaimPolicy, bindingMode *storagev1.VolumeBindingMode, allowedTopologyValues []string, namespace string) *storagev1.StorageClass {
 	provisioner := d.driverName
 	generateName := fmt.Sprintf("%s-%s-dynamic-sc-", namespace, normalizeProvisioner(provisioner))
 	return getStorageClass(generateName, provisioner, parameters, mountOptions, reclaimPolicy, bindingMode, nil)
 }
 
-func (d *NFSDriver) GetPreProvisionStorageClass(parameters map[string]string, mountOptions []string, reclaimPolicy *v1.PersistentVolumeReclaimPolicy, bindingMode *storagev1.VolumeBindingMode, allowedTopologyValues []string, namespace string) *storagev1.StorageClass {
+func (d *SSHFSDriver) GetPreProvisionStorageClass(parameters map[string]string, mountOptions []string, reclaimPolicy *v1.PersistentVolumeReclaimPolicy, bindingMode *storagev1.VolumeBindingMode, allowedTopologyValues []string, namespace string) *storagev1.StorageClass {
 	provisioner := d.driverName
 	generateName := fmt.Sprintf("%s-%s-pre-provisioned-sc-", namespace, provisioner)
 	return getStorageClass(generateName, provisioner, parameters, mountOptions, reclaimPolicy, bindingMode, nil)
 }
 
-func (d *NFSDriver) GetPersistentVolume(volumeID string, fsType string, size string, reclaimPolicy *v1.PersistentVolumeReclaimPolicy, namespace string, attrib map[string]string, nodeStageSecretRef string) *v1.PersistentVolume {
+func (d *SSHFSDriver) GetPersistentVolume(volumeID string, fsType string, size string, reclaimPolicy *v1.PersistentVolumeReclaimPolicy, namespace string, attrib map[string]string, nodeStageSecretRef string) *v1.PersistentVolume {
 	provisioner := d.driverName
 	generateName := fmt.Sprintf("%s-%s-preprovsioned-pv-", namespace, normalizeProvisioner(provisioner))
 	// Default to Retain ReclaimPolicy for pre-provisioned volumes

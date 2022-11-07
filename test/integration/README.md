@@ -4,7 +4,7 @@ Integration test verifies the functionality of CSI driver as a standalone server
 ## Run Integration Tests Locally
 ### Prerequisite
  - Make sure golang is installed.
- - Make sure Docker is installed and running. The test will spin up a docker container hosting the NFS server.
+ - Make sure Docker is installed and running. The test will spin up a docker container hosting the SSHFS server.
 
 ### Run integration tests
 ```

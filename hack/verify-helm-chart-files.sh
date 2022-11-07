@@ -42,7 +42,7 @@ if [[ -n "${diff}" ]]; then
   echo
   echo "${diff}"
   echo
-  echo "latest chart config has changed, pls run \"helm package charts/latest/csi-driver-nfs -d charts/latest/\" to update tgz file"
+  echo "latest chart config has changed, pls run \"helm package charts/latest/csi-driver-sshfs -d charts/latest/\" to update tgz file"
   exit 1
 fi
 
@@ -50,6 +50,6 @@ echo "chart tgz files verified."
 
 echo "verify helm chart index ..."
 curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-helm repo add csi-driver-nfs https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
-helm search repo -l csi-driver-nfs
+helm repo add csi-driver-sshfs https://raw.githubusercontent.com/robin-rpr/csi-driver-sshfs/master/charts
+helm search repo -l csi-driver-sshfs
 echo "helm chart index verified."

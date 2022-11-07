@@ -79,7 +79,7 @@ spec:
             capabilities:
               add: ["SYS_ADMIN"]
             allowPrivilegeEscalation: true
-          image: gcr.io/k8s-staging-sig-storage/sshfsplugin:canary
+          image: ghcr.io/robin-rpr/sshfsplugin:nightly
           args:
             - "-v=5"
             - "--nodeid=$(NODE_ID)"

@@ -17,8 +17,8 @@ limitations under the License.
 package testsuites
 
 import (
-	"github.com/kubernetes-csi/csi-driver-nfs/test/e2e/driver"
-	"github.com/robin-rpr/csi-driver-sshfs/pkg/nfs"
+	"github.com/robin-rpr/csi-driver-sshfs/pkg/sshfs"
+	"github.com/robin-rpr/csi-driver-sshfs/test/e2e/driver"
 
 	v1 "k8s.io/api/core/v1"
 	clientset "k8s.io/client-go/kubernetes"
@@ -29,7 +29,7 @@ import (
 type DynamicallyProvisionedReclaimPolicyTest struct {
 	CSIDriver              driver.DynamicPVTestDriver
 	Volumes                []VolumeDetails
-	ControllerServer       nfs.ControllerServer
+	ControllerServer       sshfs.ControllerServer
 	StorageClassParameters map[string]string
 }
 
@@ -44,7 +44,7 @@ func (t *DynamicallyProvisionedReclaimPolicyTest) Run(client clientset.Interface
 		if tpvc.ReclaimPolicy() == v1.PersistentVolumeReclaimRetain {
 			tpvc.WaitForPersistentVolumePhase(v1.VolumeReleased)
 			tpvc.DeleteBoundPersistentVolume()
-			// The controller server cannot resolve the nfs server hosting inside the testing k8s cluster, skipping the cleanup step.
+			// The controller server cannot resolve the sshfs server hosting inside the testing k8s cluster, skipping the cleanup step.
 			// tpvc.DeleteBackingVolume(&t.ControllerServer)
 		}
 	}
